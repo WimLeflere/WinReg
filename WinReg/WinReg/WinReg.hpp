@@ -273,6 +273,62 @@ private:
     HKEY m_hKey{ nullptr };
 };
 
+class String
+{
+public:
+   ~String()
+   {
+      if (_string != nullptr)
+      {
+         LocalFree(_string);
+         _string = nullptr;
+      }
+   }
+
+   const LPSTR* get() const
+   {
+      return &_string;
+   }
+
+   LPSTR operator*() const
+   {
+      return _string;
+   }
+
+private:
+   LPSTR _string = nullptr;
+};
+
+std::string addSystemError(const std::string& message, LONG errorCode)
+{
+   String systemError;
+
+   std::string error = message;
+
+   FormatMessageA(
+      // use system message tables to retrieve error text
+      FORMAT_MESSAGE_FROM_SYSTEM
+      // allocate buffer on local heap for error text
+      | FORMAT_MESSAGE_ALLOCATE_BUFFER
+      // Important! will fail otherwise, since we're not 
+      // (and CANNOT) pass insertion parameters
+      | FORMAT_MESSAGE_IGNORE_INSERTS,
+      nullptr,
+      errorCode,
+      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+      (LPSTR)systemError.get(),
+      0,
+      nullptr);
+
+   if (nullptr != *systemError)
+   {
+      error += "\r\nWindows error: ";
+      error += *systemError;
+   }
+
+   return error;
+}
+
 
 //------------------------------------------------------------------------------
 // An exception representing an error with the registry operations
@@ -282,12 +338,12 @@ class RegException
 {
 public:
     RegException(const char* message, LONG errorCode)
-        : std::runtime_error{ message }
+        : std::runtime_error{ addSystemError(message, errorCode) }
         , m_errorCode{ errorCode }
     {}
 
     RegException(const std::string& message, LONG errorCode)
-        : std::runtime_error{ message }
+        : std::runtime_error{ addSystemError(message, errorCode) }
         , m_errorCode{ errorCode }
     {}
 

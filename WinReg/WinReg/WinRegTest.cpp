@@ -148,6 +148,18 @@ int main()
             wcout << L"RegKey::QueryValueType failed for REG_BINARY.\n";
         }
 
+        try
+        {
+           throw RegException("test", ERROR_FILE_NOT_FOUND);
+        }
+        catch (const RegException& e)
+        {
+           const std::string expectedError = "test\r\nWindows error: The system cannot find the file specified.\r\n";
+           if (e.what() != expectedError)
+           {
+              wcout << L"RegException system error incorrect\n";
+           }
+        }
 
         //
         // Remove some test values
