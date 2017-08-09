@@ -150,11 +150,11 @@ int main()
 
         try
         {
-           throw RegException("test", ERROR_FILE_NOT_FOUND);
+           throw RegException("test system error", ERROR_FILE_NOT_FOUND);
         }
         catch (const RegException& e)
         {
-           const std::string expectedError = "test\r\nWindows error: The system cannot find the file specified.\r\n";
+           const std::string expectedError = "test system error: The system cannot find the file specified.\r\n";
            if (e.what() != expectedError)
            {
               wcout << L"RegException system error incorrect\n";
